@@ -99,12 +99,23 @@ export default function ApartmentForm({ initialData, onSubmit, onCancel }) {
       </div>
 
       {images.length > 0 && (
-        <div className="flex flex-wrap gap-2 mt-3">
-          {images.map((img, i) => (
-            <img key={i} src={img} className="h-20 w-20 object-cover rounded border" />
-          ))}
-        </div>
-      )}
+  <div className="flex flex-wrap gap-2 mt-3">
+    {images.map((img, i) => (
+      <div key={i} className="relative group">
+        <img src={img} className="h-20 w-20 object-cover rounded border" />
+
+        {/* Remove button */}
+        <button
+          type="button"
+          onClick={() => setImages(images.filter((_, index) => index !== i))}
+          className="absolute top-0 right-0 bg-red-600 text-white rounded-full text-xs px-1 opacity-0 group-hover:opacity-100 transition"
+        >
+          ✕
+        </button>
+      </div>
+    ))}
+  </div>
+)}
 
       <div className="flex gap-2">
         <button type="submit" className="px-4 py-2 bg-indigo-600 text-white rounded">
