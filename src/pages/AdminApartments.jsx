@@ -1,17 +1,30 @@
-import React, { useState } from "react";
+import React, {useEffect, useState} from "react";
 import ApartmentForm from "../components/ApartmentForm";
 import DiscountForm from "../components/DiscountForm";
+import {saveApartment, getApartments} from "../service/ApartmentService.js";
 
 export default function AdminApartments() {
   const [apartments, setApartments] = useState([]);
   const [editingApartment, setEditingApartment] = useState(null);
-
-  
   const [discounts, setDiscounts] = useState([]);
   const [editingDiscount, setEditingDiscount] = useState(null);
 
+    useEffect(() => {
+        const fetchApartments = async () => {
+            try {
+                const data = await getApartments();
+                setApartments(data);
+            }
+            catch (error) {
+                console.error("Error fetching apartments:", error);
+            }
+        }
+
+        fetchApartments().then();
+    }, [])
+
   // --- Apartments CRUD ---
-  function handleAddOrUpdate(apartment) {
+  async function handleAddOrUpdate(apartment) {
     if (apartment.id) {
       // update existing
       setApartments(prev =>
@@ -19,6 +32,8 @@ export default function AdminApartments() {
       );
     } else {
       // create new
+        const newApartment = await saveApartment(apartment);
+        console.log(newApartment);
       setApartments(prev => [...prev, { ...apartment, id: Date.now() }]);
     }
     setEditingApartment(null);

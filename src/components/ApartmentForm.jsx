@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, {useState} from "react";
 
 export default function ApartmentForm({ initialData, onSubmit, onCancel }) {
   const [name, setName] = useState(initialData?.name || "");
@@ -22,7 +22,7 @@ export default function ApartmentForm({ initialData, onSubmit, onCancel }) {
   }
 
   function addImages(files) {
-    const newUrls = files.map(file => URL.createObjectURL(file));
+    const newUrls = files.map(file => `http://${file.name}`);
     setImages(prev => [...prev, ...newUrls]);
   }
 
