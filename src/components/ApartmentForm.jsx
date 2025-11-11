@@ -98,14 +98,14 @@ export default function ApartmentForm({ initialData, onSubmit, onCancel }) {
         <input id="file-input" type="file" multiple className="hidden" onChange={handleSelectImages} />
       </div>
 
-      {images.length > 0 && (
+      {/* {images.length > 0 && (
   <div className="flex flex-wrap gap-2 mt-3">
     {images.map((img, i) => (
       <div key={i} className="relative group">
-        <img src={img} className="h-20 w-20 object-cover rounded border" />
+        <img src={img} className="h-20 w-20 object-cover rounded border" /> */}
 
         {/* Remove button */}
-        <button
+        {/* <button
           type="button"
           onClick={() => setImages(images.filter((_, index) => index !== i))}
           className="absolute top-0 right-0 bg-red-600 text-white rounded-full text-xs px-1 opacity-0 group-hover:opacity-100 transition"
@@ -115,7 +115,57 @@ export default function ApartmentForm({ initialData, onSubmit, onCancel }) {
       </div>
     ))}
   </div>
+)} */}
+
+      {images.length > 0 && (
+  <div className="flex flex-wrap gap-2 mt-3">
+    {images.map((img, i) => (
+      <div key={i} className="relative group flex flex-col items-center">
+        <img src={img} className="h-20 w-20 object-cover rounded border" />
+
+        <div className="flex gap-1 mt-1">
+          {/* Move Left */}
+          <button
+            type="button"
+            disabled={i === 0}
+            onClick={() => {
+              const newArr = [...images];
+              [newArr[i-1], newArr[i]] = [newArr[i], newArr[i-1]];
+              setImages(newArr);
+            }}
+            className="px-1 text-xs bg-gray-200 rounded disabled:opacity-30"
+          >
+            ◀
+          </button>
+
+          {/* Move Right */}
+          <button
+            type="button"
+            disabled={i === images.length - 1}
+            onClick={() => {
+              const newArr = [...images];
+              [newArr[i+1], newArr[i]] = [newArr[i], newArr[i+1]];
+              setImages(newArr);
+            }}
+            className="px-1 text-xs bg-gray-200 rounded disabled:opacity-30"
+          >
+            ▶
+          </button>
+
+          {/* Remove */}
+          <button
+            type="button"
+            onClick={() => setImages(images.filter((_, index) => index !== i))}
+            className="px-1 text-xs bg-red-600 text-white rounded"
+          >
+            ✕
+          </button>
+        </div>
+      </div>
+    ))}
+  </div>
 )}
+
 
       <div className="flex gap-2">
         <button type="submit" className="px-4 py-2 bg-indigo-600 text-white rounded">

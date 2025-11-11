@@ -104,19 +104,21 @@ export default function AdminApartments() {
         <h2 className="text-2xl font-bold mb-4">Discount Codes</h2>
 
         <DiscountForm
-          initialData={editingDiscount}
-          onSubmit={handleAddOrUpdateDiscount}
-          onCancel={() => setEditingDiscount(null)}
-        />
+    initialData={editingDiscount}
+    apartments={apartments}
+    onSubmit={handleAddOrUpdateDiscount}
+    onCancel={() => setEditingDiscount(null)}
+  />
+
 
         {/* Discount List */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
           {discounts.map((d) => (
             <div key={d.id} className="bg-white shadow p-4 rounded border">
               <h3 className="font-bold text-lg">{d.codeName}</h3>
-              <p className="text-sm">Discount: {d.discountPercent}%</p>
+              <p className="text-sm">New Price: {d.newPrice}</p>
+              <p className="text-sm">Applies to: {d.apartmentIds?.length || 0} apartments</p>
               <p className="text-sm text-gray-600">Expires: {d.expireDate}</p>
-
               <div className="flex gap-2 mt-4">
                 <button onClick={() => handleEditDiscount(d)} className="px-3 py-1 bg-yellow-500 text-white rounded">
                   Edit
