@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from "react";
 import ApartmentForm from "../components/ApartmentForm";
 import DiscountForm from "../components/DiscountForm";
-import {saveApartment, getApartments} from "../service/ApartmentService.js";
+import {saveApartment, getApartments, updateApartment} from "../service/ApartmentService.js";
 
 export default function AdminApartments() {
   const [apartments, setApartments] = useState([]);
@@ -25,15 +25,20 @@ export default function AdminApartments() {
 
   // --- Apartments CRUD ---
   async function handleAddOrUpdate(apartment) {
+    let savedApartment;
+
     if (apartment.id) {
       // update existing
+
+        savedApartment = await updateApartment(apartment);
+        console.log(savedApartment);
       setApartments(prev =>
         prev.map(a => (a.id === apartment.id ? apartment : a))
       );
     } else {
       // create new
-        const newApartment = await saveApartment(apartment);
-        console.log(newApartment);
+        saveApartment = await saveApartment(apartment);
+        console.log(savedApartment);
       setApartments(prev => [...prev, { ...apartment, id: Date.now() }]);
     }
     setEditingApartment(null);
@@ -85,6 +90,7 @@ export default function AdminApartments() {
           {apartments.map((ap) => (
             <div key={ap.id} className="bg-white shadow p-4 rounded border">
               <h3 className="font-bold text-lg">{ap.name}</h3>
+              <p className="text-sm text-gray-600">City: {ap.city}</p>
               <p className="text-sm text-gray-600">{ap.address}</p>
               <p className="mt-1 text-sm font-semibold">{ap.price} {ap.currency}</p>
 

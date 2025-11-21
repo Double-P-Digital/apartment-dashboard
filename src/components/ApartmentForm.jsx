@@ -2,7 +2,12 @@ import React, {useState} from "react";
 
 export default function ApartmentForm({ initialData, onSubmit, onCancel }) {
   const [name, setName] = useState(initialData?.name || "");
+  const [city, setCity] = useState(initialData?.city || "");
   const [address, setAddress] = useState(initialData?.address || "");
+
+  const [descriptionRo, setDescriptionRo] = useState(initialData?.descriptionRo || "");
+  const [descriptionEn, setDescriptionEn] = useState(initialData?.descriptionEn || "");
+
   const [price, setPrice] = useState(initialData?.price || "");
   const [currency, setCurrency] = useState(initialData?.currency || "EUR");
   const [description, setDescription] = useState(initialData?.description || "");
@@ -31,7 +36,10 @@ export default function ApartmentForm({ initialData, onSubmit, onCancel }) {
     onSubmit({
       id: initialData?.id,
       name,
+      city,
       address,
+      descriptionRo,
+      descriptionEn,
       price: Number(price),
       currency,
       description,
@@ -41,7 +49,9 @@ export default function ApartmentForm({ initialData, onSubmit, onCancel }) {
     });
 
     if (!initialData) {
-      setName(""); setAddress(""); setDescription(""); setAmenities(""); setImages([]); setPrice(""); setStatus("available"); setCurrency("EUR");
+      setName(""); setCity("");
+      setAddress(""); setDescriptionRo(""); 
+      setDescriptionEn(""),setAmenities(""); setImages([]); setPrice(""); setStatus("available"); setCurrency("EUR");
     }
   }
 
@@ -50,6 +60,13 @@ export default function ApartmentForm({ initialData, onSubmit, onCancel }) {
 
       <input className="w-full border p-2 rounded" placeholder="Name"
         value={name} onChange={e => setName(e.target.value)} />
+
+      <input
+        className="w-full border p-2 rounded"
+        placeholder="City"
+        value={city}
+        onChange={(e) => setCity(e.target.value)}
+      />  
 
       <input className="w-full border p-2 rounded" placeholder="Address"
         value={address} onChange={e => setAddress(e.target.value)} />
@@ -74,8 +91,19 @@ export default function ApartmentForm({ initialData, onSubmit, onCancel }) {
         </select>
       </div>
 
-      <textarea className="w-full border p-2 rounded" placeholder="Description"
-        value={description} onChange={e => setDescription(e.target.value)} />
+      <textarea
+        className="w-full border p-2 rounded"
+        placeholder="Description (Romanian)"
+        value={descriptionRo}
+        onChange={(e) => setDescriptionRo(e.target.value)}
+      />
+
+      <textarea
+        className="w-full border p-2 rounded"
+        placeholder="Description (English)"
+        value={descriptionEn}
+        onChange={(e) => setDescriptionEn(e.target.value)}
+      />
 
       <input className="w-full border p-2 rounded"
         placeholder="Amenities (comma separated)"

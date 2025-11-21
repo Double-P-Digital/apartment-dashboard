@@ -32,6 +32,21 @@ export const getApartments = async () => {
     }
 }
 
-export const updateApartment = async (apartmentData) => {}
+export const updateApartment = async (apartmentData) => {
+    try {
+        const response =  await fetch(`http://localhost:3000/api/apartments/${apartmentData.id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': 'supersecretinternalapikey'
+            },
+            body: JSON.stringify(apartmentData)
+        });
+
+        return await response.json();
+    } catch (error) {
+        return error;
+    }
+}
 
 export const deleteApartment = async (apartmentId) => {}
