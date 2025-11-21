@@ -1,6 +1,6 @@
 // src/service/ApartmentService.js
 
-const API_BASE_URL = 'http://localhost:3000/api/apartments'; 
+const API_BASE_URL = 'http://localhost:3000/api/apartment-service'; 
 // Ensure your .env file has a variable like VITE_X_API_KEY=supersecretinternalapikey
 const apiKey = import.meta.env.VITE_X_API_KEY; // For Vite
 

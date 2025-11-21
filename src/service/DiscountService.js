@@ -1,5 +1,5 @@
 
-const API_BASE_URL = 'http://localhost:3000/discount-codes'; 
+const API_BASE_URL = 'http://localhost:3000/api/discount-code-service'; 
 const apiKey = import.meta.env.VITE_X_API_KEY; // For Vite
 
 /**
