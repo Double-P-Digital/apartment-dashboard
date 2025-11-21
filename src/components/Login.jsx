@@ -1,117 +1,103 @@
-// src/components/Login.jsx
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { saveToken } from '../auth';
 
-export default function Login() {
-  const navigate = useNavigate();
+import React, { useState } from 'react';
+import { loginUser } from '../service/AuthService.js';
+
+export default function Login({ onLoginSuccess }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [remember, setRemember] = useState(true);
 
-  async function handleSubmit(e) {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
+
     if (!username || !password) {
-      setError('Please enter username and password.');
+      setError('Both username and password are required.');
+      setLoading(false);
       return;
     }
 
-    setLoading(true);
     try {
+      const token = await loginUser(username, password);
+
+      // Save the token to local storage
+      localStorage.setItem('authToken', token);
+      console.log('Login successful. Token saved.');
       
-      const res = await fetch('/api/admin/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        
-        body: JSON.stringify({ username: username.trim(), password }),
-        
-      });
-
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setError(data.message || 'Login failed. Check credentials.');
-        setLoading(false);
-        return;
-      }
-
-      // If backend returns token in JSON:
-    //   if (data.token) {
-    //     saveToken(data.token);
-    //   }
-
-      
-      navigate('/admin', { replace: true });
+      // Call the prop function to update the parent state (App.jsx) and redirect
+      onLoginSuccess();
     } catch (err) {
-      console.error(err);
-      setError('Network error. Try again.');
+      // Display the error message from the API or service
+      setError(err.message || 'An unexpected login error occurred.');
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-      <div className="max-w-md w-full bg-white p-8 rounded-2xl shadow-md">
-        <h1 className="text-2xl font-semibold mb-1 text-gray-800">Admin Login</h1>
-        <p className="text-sm text-gray-500 mb-6">Sign in to manage apartments</p>
-
-        {error && (
-          <div className="mb-4 text-sm text-red-700 bg-red-100 p-2 rounded">
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-xl">
+        <h2 className="text-3xl font-bold text-center text-gray-900">
+          Admin Login 
+        </h2>
+        <form className="space-y-4" onSubmit={handleSubmit}>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Username</label>
+            <label 
+              htmlFor="username" 
+              className="block text-sm font-medium text-gray-700"
+            >
+              Username
+            </label>
             <input
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-300 p-2"
+              id="username"
+              type="text"
+              required
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              autoComplete="username"
+              className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+              disabled={loading}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Password</label>
+            <label 
+              htmlFor="password" 
+              className="block text-sm font-medium text-gray-700"
+            >
+              Password
+            </label>
             <input
+              id="password"
               type="password"
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-300 p-2"
+              required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              autoComplete="current-password"
+              className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+              disabled={loading}
             />
           </div>
+          
+          {/* Error Message */}
+          {error && (
+            <div className="p-3 text-sm font-medium text-red-700 bg-red-100 rounded-md">
+              {error}
+            </div>
+          )}
 
-          <div className="flex items-center justify-between">
-            <label className="flex items-center text-sm">
-              <input
-                type="checkbox"
-                checked={remember}
-                onChange={() => setRemember((s) => !s)}
-                className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
-              />
-              <span className="ml-2 text-gray-600">Remember me</span>
-            </label>
+          <div>
             <button
               type="submit"
-              className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-60"
+              className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${
+                loading ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
+              }`}
               disabled={loading}
             >
-              {loading ? (
-                <svg className="animate-spin h-4 w-4 mr-2" viewBox="0 0 24 24">
-                  <circle cx="12" cy="12" r="10" stroke="white" strokeWidth="4" strokeDasharray="31.4 31.4" fill="none"/>
-                </svg>
-              ) : null}
-              Sign in
+              {loading ? 'Logging in...' : 'Sign In'}
             </button>
           </div>
         </form>
-
-    
       </div>
     </div>
   );
