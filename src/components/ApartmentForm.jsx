@@ -1,19 +1,27 @@
+
+
 import React, {useState} from "react";
 
 export default function ApartmentForm({ initialData, onSubmit, onCancel }) {
+  
   const [name, setName] = useState(initialData?.name || "");
   const [city, setCity] = useState(initialData?.city || "");
   const [address, setAddress] = useState(initialData?.address || "");
-
   const [descriptionRo, setDescriptionRo] = useState(initialData?.descriptionRo || "");
   const [descriptionEn, setDescriptionEn] = useState(initialData?.descriptionEn || "");
-
   const [price, setPrice] = useState(initialData?.price || "");
   const [currency, setCurrency] = useState(initialData?.currency || "EUR");
-  const [description, setDescription] = useState(initialData?.description || "");
   const [amenities, setAmenities] = useState(initialData?.amenities?.join(", ") || "");
   const [status, setStatus] = useState(initialData?.status || "available");
   const [images, setImages] = useState(initialData?.images || []);
+  
+  
+  const [maxGuests, setMaxGuests] = useState(initialData?.maxGuests || "");
+  const [bedrooms, setBedrooms] = useState(initialData?.bedrooms || "");
+  const [bathrooms, setBathrooms] = useState(initialData?.bathrooms || "");
+  const [latitude, setLatitude] = useState(initialData?.coordinates?.latitude || "");
+  const [longitude, setLongitude] = useState(initialData?.coordinates?.longitude || "");
+  
 
   function handleDrop(e) {
     e.preventDefault();
@@ -27,12 +35,16 @@ export default function ApartmentForm({ initialData, onSubmit, onCancel }) {
   }
 
   function addImages(files) {
+    // NOTE: In a real deployment, you would upload these files to a server 
+    // and get a real URL back. This is a placeholder.
     const newUrls = files.map(file => `http://${file.name}`);
     setImages(prev => [...prev, ...newUrls]);
   }
 
   function handleSubmit(e) {
     e.preventDefault();
+    
+    // Construct the data object matching the required schema
     onSubmit({
       id: initialData?.id,
       name,
@@ -42,16 +54,30 @@ export default function ApartmentForm({ initialData, onSubmit, onCancel }) {
       descriptionEn,
       price: Number(price),
       currency,
-      description,
+      
       amenities: amenities.split(",").map(a => a.trim()).filter(Boolean),
       images,
       status,
+      
+      maxGuests: Number(maxGuests),
+      bedrooms: Number(bedrooms),
+      bathrooms: Number(bathrooms),
+      coordinates: {
+        latitude: Number(latitude),
+        longitude: Number(longitude),
+      },
     });
 
     if (!initialData) {
-      setName(""); setCity("");
-      setAddress(""); setDescriptionRo(""); 
-      setDescriptionEn(""),setAmenities(""); setImages([]); setPrice(""); setStatus("available"); setCurrency("EUR");
+      
+      setName(""); setCity(""); setAddress(""); 
+      setDescriptionRo(""); setDescriptionEn("");
+      setAmenities(""); setImages([]); setPrice(""); 
+      setStatus("available"); setCurrency("EUR");
+      
+      
+      setMaxGuests(""); setBedrooms(""); setBathrooms("");
+      setLatitude(""); setLongitude("");
     }
   }
 
@@ -59,27 +85,27 @@ export default function ApartmentForm({ initialData, onSubmit, onCancel }) {
     <form onSubmit={handleSubmit} className="space-y-4">
 
       <input className="w-full border p-2 rounded" placeholder="Name"
-        value={name} onChange={e => setName(e.target.value)} />
+        value={name} onChange={e => setName(e.target.value)} required />
 
-      <input
-        className="w-full border p-2 rounded"
-        placeholder="City"
-        value={city}
-        onChange={(e) => setCity(e.target.value)}
-      />  
-
-      <input className="w-full border p-2 rounded" placeholder="Address"
-        value={address} onChange={e => setAddress(e.target.value)} />
+      {/* Location */}
+      <div className="flex gap-3">
+        <input className="w-full border p-2 rounded" placeholder="City"
+          value={city} onChange={(e) => setCity(e.target.value)} required />  
+        <input className="w-full border p-2 rounded" placeholder="Address"
+          value={address} onChange={e => setAddress(e.target.value)} required />
+      </div>
 
       {/* Price + Currency */}
-      <div className="flex gap-3">
+      <div className="flex gap-3 items-center">
+        <label className="text-sm font-medium text-gray-700">Price/Night:</label>
         <input
           type="number"
           className="w-32 border p-2 rounded"
           placeholder="Price"
           value={price}
           onChange={e => setPrice(e.target.value)}
-          onWheel={e => e.target.blur()} // ≤ fixes mouse wheel changing value
+          onWheel={e => e.target.blur()} 
+          min="0" required
         />
         <select
           className="border p-2 rounded"
@@ -90,7 +116,26 @@ export default function ApartmentForm({ initialData, onSubmit, onCancel }) {
           <option value="RON">RON</option>
         </select>
       </div>
+      
+      {/* NEW: Capacity & Rooms */}
+      <div className="flex gap-3">
+        <input type="number" className="w-full border p-2 rounded" placeholder="Max Guests"
+          value={maxGuests} onChange={e => setMaxGuests(e.target.value)} min="1" required />
+        <input type="number" className="w-full border p-2 rounded" placeholder="Bedrooms"
+          value={bedrooms} onChange={e => setBedrooms(e.target.value)} min="0" required />
+        <input type="number" className="w-full border p-2 rounded" placeholder="Bathrooms"
+          value={bathrooms} onChange={e => setBathrooms(e.target.value)} min="0" required />
+      </div>
 
+      {/* NEW: Coordinates */}
+      <div className="flex gap-3">
+        <input type="number" step="any" className="w-full border p-2 rounded" placeholder="Latitude (e.g., 45.7983)"
+          value={latitude} onChange={e => setLatitude(e.target.value)} required />
+        <input type="number" step="any" className="w-full border p-2 rounded" placeholder="Longitude (e.g., 24.1256)"
+          value={longitude} onChange={e => setLongitude(e.target.value)} required />
+      </div>
+
+      {/* Descriptions */}
       <textarea
         className="w-full border p-2 rounded"
         placeholder="Description (Romanian)"
@@ -115,7 +160,7 @@ export default function ApartmentForm({ initialData, onSubmit, onCancel }) {
         <option value="unavailable">unavailable</option>
       </select>
 
-      {/* Drag & Drop Image Upload */}
+      {/* Image Handling (Remains the same) */}
       <div
         className="border-2 border-dashed rounded p-6 text-center cursor-pointer bg-gray-50 hover:bg-gray-100"
         onDrop={handleDrop}
@@ -126,73 +171,54 @@ export default function ApartmentForm({ initialData, onSubmit, onCancel }) {
         <input id="file-input" type="file" multiple className="hidden" onChange={handleSelectImages} />
       </div>
 
-      {/* {images.length > 0 && (
-  <div className="flex flex-wrap gap-2 mt-3">
-    {images.map((img, i) => (
-      <div key={i} className="relative group">
-        <img src={img} className="h-20 w-20 object-cover rounded border" /> */}
-
-        {/* Remove button */}
-        {/* <button
-          type="button"
-          onClick={() => setImages(images.filter((_, index) => index !== i))}
-          className="absolute top-0 right-0 bg-red-600 text-white rounded-full text-xs px-1 opacity-0 group-hover:opacity-100 transition"
-        >
-          ✕
-        </button>
-      </div>
-    ))}
-  </div>
-)} */}
-
       {images.length > 0 && (
-  <div className="flex flex-wrap gap-2 mt-3">
-    {images.map((img, i) => (
-      <div key={i} className="relative group flex flex-col items-center">
-        <img src={img} className="h-20 w-20 object-cover rounded border" />
+        <div className="flex flex-wrap gap-2 mt-3">
+          {images.map((img, i) => (
+            <div key={i} className="relative group flex flex-col items-center">
+              <img src={img} className="h-20 w-20 object-cover rounded border" />
 
-        <div className="flex gap-1 mt-1">
-          {/* Move Left */}
-          <button
-            type="button"
-            disabled={i === 0}
-            onClick={() => {
-              const newArr = [...images];
-              [newArr[i-1], newArr[i]] = [newArr[i], newArr[i-1]];
-              setImages(newArr);
-            }}
-            className="px-1 text-xs bg-gray-200 rounded disabled:opacity-30"
-          >
-            ◀
-          </button>
+              <div className="flex gap-1 mt-1">
+                {/* Move Left */}
+                <button
+                  type="button"
+                  disabled={i === 0}
+                  onClick={() => {
+                    const newArr = [...images];
+                    [newArr[i-1], newArr[i]] = [newArr[i], newArr[i-1]];
+                    setImages(newArr);
+                  }}
+                  className="px-1 text-xs bg-gray-200 rounded disabled:opacity-30"
+                >
+                  ◀
+                </button>
 
-          {/* Move Right */}
-          <button
-            type="button"
-            disabled={i === images.length - 1}
-            onClick={() => {
-              const newArr = [...images];
-              [newArr[i+1], newArr[i]] = [newArr[i], newArr[i+1]];
-              setImages(newArr);
-            }}
-            className="px-1 text-xs bg-gray-200 rounded disabled:opacity-30"
-          >
-            ▶
-          </button>
+                {/* Move Right */}
+                <button
+                  type="button"
+                  disabled={i === images.length - 1}
+                  onClick={() => {
+                    const newArr = [...images];
+                    [newArr[i+1], newArr[i]] = [newArr[i], newArr[i+1]];
+                    setImages(newArr);
+                  }}
+                  className="px-1 text-xs bg-gray-200 rounded disabled:opacity-30"
+                >
+                  ▶
+                </button>
 
-          {/* Remove */}
-          <button
-            type="button"
-            onClick={() => setImages(images.filter((_, index) => index !== i))}
-            className="px-1 text-xs bg-red-600 text-white rounded"
-          >
-            ✕
-          </button>
+                {/* Remove */}
+                <button
+                  type="button"
+                  onClick={() => setImages(images.filter((_, index) => index !== i))}
+                  className="px-1 text-xs bg-red-600 text-white rounded"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
-      </div>
-    ))}
-  </div>
-)}
+      )}
 
 
       <div className="flex gap-2">

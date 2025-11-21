@@ -1,9 +1,14 @@
+// src/components/DiscountForm.jsx (Restored Apartment Selection Logic)
+
 import React, { useState } from "react";
 
 export default function DiscountForm({ initialData, apartments = [], onSubmit, onCancel }) {
-  const [codeName, setCodeName] = useState(initialData?.codeName || "");
-  const [expireDate, setExpireDate] = useState(initialData?.expireDate || "");
-  const [newPrice, setNewPrice] = useState(initialData?.newPrice || "");
+  // State variables aligned with NestJS DTO/Service expectations
+  const [code, setCode] = useState(initialData?.code || "");
+  const [expirationDate, setExpirationDate] = useState(initialData?.expirationDate || "");
+  const [price, setPrice] = useState(initialData?.price || "");
+  
+  // RESTORED: State for apartment IDs linked to this discount
   const [apartmentIds, setApartmentIds] = useState(initialData?.apartmentIds || []);
 
   function toggleApartment(id) {
@@ -17,18 +22,20 @@ export default function DiscountForm({ initialData, apartments = [], onSubmit, o
   function handleSubmit(e) {
     e.preventDefault();
     onSubmit({
-      id: initialData?.id,
-      codeName,
-      expireDate,
-      newPrice: Number(newPrice),
-      apartmentIds,
+      // We assume the backend uses Mongoose _id as the 'id' property here
+      id: initialData?._id || initialData?.id, 
+      code,
+      expirationDate,
+      price: Number(price), 
+      // RESTORED: Include apartmentIds in the payload for the backend service
+      apartmentIds, 
     });
 
     if (!initialData) {
-      setCodeName("");
-      setExpireDate("");
-      setNewPrice("");
-      setApartmentIds([]);
+      setCode("");
+      setExpirationDate("");
+      setPrice("");
+      setApartmentIds([]); // Reset apartment selection
     }
   }
 
@@ -36,22 +43,27 @@ export default function DiscountForm({ initialData, apartments = [], onSubmit, o
     <form onSubmit={handleSubmit} className="space-y-4 max-w-md">
 
       <input className="w-full border p-2 rounded"
-        placeholder="Code Name"
-        value={codeName}
-        onChange={(e) => setCodeName(e.target.value)}
+        placeholder="Code Name (e.g., SUMMER25)"
+        value={code}
+        onChange={(e) => setCode(e.target.value)}
+        required
       />
 
       <input type="date" className="w-full border p-2 rounded"
-        value={expireDate}
-        onChange={(e) => setExpireDate(e.target.value)}
+        value={expirationDate}
+        onChange={(e) => setExpirationDate(e.target.value)}
+        required
       />
 
       <input type="number" className="w-full border p-2 rounded"
-        placeholder="Discounted Price"
-        value={newPrice}
-        onChange={(e) => setNewPrice(e.target.value)}
+        placeholder="Discount Price (e.g., 100)"
+        value={price}
+        onChange={(e) => setPrice(e.target.value)}
+        min="0"
+        required
       />
-
+      
+      {/* RESTORED: Apartment Selection UI */}
       <div>
         <p className="font-semibold mb-1">Applies to Apartments:</p>
         <div className="flex flex-col gap-2 max-h-40 overflow-y-auto border p-2 rounded">
@@ -67,6 +79,8 @@ export default function DiscountForm({ initialData, apartments = [], onSubmit, o
           ))}
         </div>
       </div>
+      {/* END RESTORED */}
+
 
       <div className="flex gap-2">
         <button type="submit" className="px-4 py-2 bg-indigo-600 text-white rounded">
