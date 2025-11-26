@@ -1,6 +1,6 @@
-
-
-const API_BASE_URL = 'http://localhost:3000'; // **Modify this URL to match your backend port/domain**
+const API_BASE_URL = 'http://localhost:3000/api/auth-service'; 
+// Use the same apiKey variable setup as in your other services
+const apiKey = import.meta.env.VITE_X_API_KEY; 
 
 /**
  * Handles the user login request.
@@ -10,17 +10,20 @@ const API_BASE_URL = 'http://localhost:3000'; // **Modify this URL to match your
  */
 export async function loginUser(username, password) {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+    // 1. FIX: Append '/login' to reach the correct backend route
+    const response = await fetch(`${API_BASE_URL}/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        // 2. FIX: Include the API Key as required by your backend infrastructure
+        'x-api-key': apiKey, 
       },
       body: JSON.stringify({ username, password }),
     });
 
     if (!response.ok) {
       // Throw an error with the response message for handling in the component
-      const errorData = await response.json();
+      const errorData = await response.json().catch(() => ({ message: `Login failed with HTTP status ${response.status}` }));
       throw new Error(errorData.message || 'Login failed due to server error');
     }
 
@@ -33,3 +36,4 @@ export async function loginUser(username, password) {
     throw error;
   }
 }
+
