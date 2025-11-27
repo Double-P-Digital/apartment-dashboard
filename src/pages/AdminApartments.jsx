@@ -1,4 +1,4 @@
-// src/pages/AdminApartments.jsx (Updated for Discount Schema)
+// src/pages/AdminApartments.jsx (Updated for Hotel ID)
 
 import React, {useEffect, useState} from "react";
 import ApartmentForm from "../components/ApartmentForm";
@@ -153,6 +153,8 @@ export default function AdminApartments({ onLogout }) {
           {apartments.map((ap) => (
             <div key={ap.id} className="bg-white shadow p-4 rounded border">
               <h3 className="font-bold text-lg">{ap.name}</h3>
+              {/* ADDED: Display hotelId */}
+              <p className="text-xs text-gray-400">Hotel ID: {ap.hotelId}</p> 
               <p className="text-sm text-gray-600">City: {ap.city} | Guests: {ap.maxGuests}</p>
               <p className="text-sm text-gray-600">Rooms: {ap.bedrooms} Bed, {ap.bathrooms} Bath</p>
               <p className="mt-1 text-sm font-semibold">{ap.price} {ap.currency}</p>

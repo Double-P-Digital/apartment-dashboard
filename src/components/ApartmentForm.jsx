@@ -1,8 +1,9 @@
-
-
 import React, {useState} from "react";
 
 export default function ApartmentForm({ initialData, onSubmit, onCancel }) {
+  
+  // ADDED: State for hotelId
+  const [hotelId, setHotelId] = useState(initialData?.hotelId || "");
   
   const [name, setName] = useState(initialData?.name || "");
   const [city, setCity] = useState(initialData?.city || "");
@@ -47,6 +48,8 @@ export default function ApartmentForm({ initialData, onSubmit, onCancel }) {
     // Construct the data object matching the required schema
     onSubmit({
       id: initialData?.id,
+      // ADDED: Include hotelId in the submission
+      hotelId, 
       name,
       city,
       address,
@@ -69,6 +72,8 @@ export default function ApartmentForm({ initialData, onSubmit, onCancel }) {
     });
 
     if (!initialData) {
+      // ADDED: Reset hotelId
+      setHotelId("");
       
       setName(""); setCity(""); setAddress(""); 
       setDescriptionRo(""); setDescriptionEn("");
@@ -83,8 +88,11 @@ export default function ApartmentForm({ initialData, onSubmit, onCancel }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-
-      <input className="w-full border p-2 rounded" placeholder="Name"
+      {/* ADDED: Input for Hotel ID (Make sure to match the input style of 'Name') */}
+      <input className="w-full border p-2 rounded" placeholder="Hotel ID (e.g., ABN_001)"
+        value={hotelId} onChange={e => setHotelId(e.target.value)} required />
+        
+      <input className="w-full border p-2 rounded" placeholder="Apartment Name"
         value={name} onChange={e => setName(e.target.value)} required />
 
       {/* Location */}
@@ -117,7 +125,7 @@ export default function ApartmentForm({ initialData, onSubmit, onCancel }) {
         </select>
       </div>
       
-      {/* NEW: Capacity & Rooms */}
+      {/* Capacity & Rooms */}
       <div className="flex gap-3">
         <input type="number" className="w-full border p-2 rounded" placeholder="Max Guests"
           value={maxGuests} onChange={e => setMaxGuests(e.target.value)} min="1" required />
@@ -127,7 +135,7 @@ export default function ApartmentForm({ initialData, onSubmit, onCancel }) {
           value={bathrooms} onChange={e => setBathrooms(e.target.value)} min="0" required />
       </div>
 
-      {/* NEW: Coordinates */}
+      {/* Coordinates */}
       <div className="flex gap-3">
         <input type="number" step="any" className="w-full border p-2 rounded" placeholder="Latitude (e.g., 45.7983)"
           value={latitude} onChange={e => setLatitude(e.target.value)} required />
