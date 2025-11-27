@@ -63,6 +63,13 @@ export default function AdminApartments({ onLogout }) {
   function handleEdit(ap) {
     setEditingApartment(ap);
     setMessage('');
+    // scroll the form into view so user can see and edit the fields
+    const formEl = document.querySelector('form');
+    if (formEl && typeof formEl.scrollIntoView === 'function') {
+      formEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   }
 
   async function handleDelete(id) {

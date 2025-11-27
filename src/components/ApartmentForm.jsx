@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useState, useEffect, useRef} from "react";
 
 export default function ApartmentForm({ initialData, onSubmit, onCancel }) {
   
@@ -22,6 +22,46 @@ export default function ApartmentForm({ initialData, onSubmit, onCancel }) {
   const [bathrooms, setBathrooms] = useState(initialData?.bathrooms || "");
   const [latitude, setLatitude] = useState(initialData?.coordinates?.latitude || "");
   const [longitude, setLongitude] = useState(initialData?.coordinates?.longitude || "");
+  
+  // refs to focus and scroll when editing
+  const nameInputRef = useRef(null);
+  const formRef = useRef(null);
+
+  // Keep form fields in sync when `initialData` changes (e.g. user clicked Edit)
+  useEffect(() => {
+    if (initialData) {
+      setHotelId(initialData?.hotelId || "");
+      setName(initialData?.name || "");
+      setCity(initialData?.city || "");
+      setAddress(initialData?.address || "");
+      setDescriptionRo(initialData?.descriptionRo || "");
+      setDescriptionEn(initialData?.descriptionEn || "");
+      setPrice(initialData?.price ?? "");
+      setCurrency(initialData?.currency || "EUR");
+      setAmenities(initialData?.amenities?.join(", ") || "");
+      setStatus(initialData?.status || "available");
+      setImages(initialData?.images || []);
+      setMaxGuests(initialData?.maxGuests ?? "");
+      setBedrooms(initialData?.bedrooms ?? "");
+      setBathrooms(initialData?.bathrooms ?? "");
+      setLatitude(initialData?.coordinates?.latitude ?? "");
+      setLongitude(initialData?.coordinates?.longitude ?? "");
+
+      // scroll the form into view and focus the name input
+      formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      nameInputRef.current?.focus();
+    } else {
+      // clear form when no initialData (e.g. cancelled)
+      setHotelId("");
+      setName(""); setCity(""); setAddress("");
+      setDescriptionRo(""); setDescriptionEn("");
+      setPrice(""); setCurrency("EUR");
+      setAmenities(""); setImages([]);
+      setStatus("available");
+      setMaxGuests(""); setBedrooms(""); setBathrooms("");
+      setLatitude(""); setLongitude("");
+    }
+  }, [initialData]);
   
 
   function handleDrop(e) {
@@ -87,12 +127,12 @@ export default function ApartmentForm({ initialData, onSubmit, onCancel }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
       {/* ADDED: Input for Hotel ID (Make sure to match the input style of 'Name') */}
-      <input className="w-full border p-2 rounded" placeholder="Hotel ID (e.g., ABN_001)"
+      <input className="w-full border p-2 rounded" placeholder="Hotel ID "
         value={hotelId} onChange={e => setHotelId(e.target.value)} required />
         
-      <input className="w-full border p-2 rounded" placeholder="Apartment Name"
+      <input ref={nameInputRef} className="w-full border p-2 rounded" placeholder="Apartment Name"
         value={name} onChange={e => setName(e.target.value)} required />
 
       {/* Location */}
@@ -137,9 +177,9 @@ export default function ApartmentForm({ initialData, onSubmit, onCancel }) {
 
       {/* Coordinates */}
       <div className="flex gap-3">
-        <input type="number" step="any" className="w-full border p-2 rounded" placeholder="Latitude (e.g., 45.7983)"
+        <input type="number" step="any" className="w-full border p-2 rounded" placeholder="Latitude (eg 45.7983)"
           value={latitude} onChange={e => setLatitude(e.target.value)} required />
-        <input type="number" step="any" className="w-full border p-2 rounded" placeholder="Longitude (e.g., 24.1256)"
+        <input type="number" step="any" className="w-full border p-2 rounded" placeholder="Longitude (eg 24.1256)"
           value={longitude} onChange={e => setLongitude(e.target.value)} required />
       </div>
 
