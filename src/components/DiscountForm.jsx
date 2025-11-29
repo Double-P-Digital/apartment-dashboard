@@ -1,15 +1,34 @@
 // src/components/DiscountForm.jsx (Restored Apartment Selection Logic)
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 export default function DiscountForm({ initialData, apartments = [], onSubmit, onCancel }) {
   // State variables aligned with NestJS DTO/Service expectations
   const [code, setCode] = useState(initialData?.code || "");
   const [expirationDate, setExpirationDate] = useState(initialData?.expirationDate || "");
   const [price, setPrice] = useState(initialData?.price || "");
+  const [currency, setCurrency] = useState(initialData?.currency || "EUR");
   
   // RESTORED: State for apartment IDs linked to this discount
   const [apartmentIds, setApartmentIds] = useState(initialData?.apartmentIds || []);
+
+  // Sync form fields when initialData changes (e.g., user clicks Edit)
+  useEffect(() => {
+    if (initialData) {
+      setCode(initialData?.code || "");
+      setExpirationDate(initialData?.expirationDate || "");
+      setPrice(initialData?.price || "");
+      setCurrency(initialData?.currency || "EUR");
+      setApartmentIds(initialData?.apartmentIds || []);
+    } else {
+      // Clear form when no initialData (e.g. cancelled)
+      setCode("");
+      setExpirationDate("");
+      setPrice("");
+      setCurrency("EUR");
+      setApartmentIds([]);
+    }
+  }, [initialData]);
 
   function toggleApartment(id) {
     setApartmentIds(prev =>
@@ -27,6 +46,7 @@ export default function DiscountForm({ initialData, apartments = [], onSubmit, o
       code,
       expirationDate,
       price: Number(price), 
+      currency,
       // RESTORED: Include apartmentIds in the payload for the backend service
       apartmentIds, 
     });
@@ -35,6 +55,7 @@ export default function DiscountForm({ initialData, apartments = [], onSubmit, o
       setCode("");
       setExpirationDate("");
       setPrice("");
+      setCurrency("EUR");
       setApartmentIds([]); // Reset apartment selection
     }
   }
@@ -62,6 +83,19 @@ export default function DiscountForm({ initialData, apartments = [], onSubmit, o
         min="0"
         required
       />
+
+      {/* Currency Selection */}
+      <div className="flex gap-3 items-center">
+        <label className="text-sm font-medium text-gray-700">Currency:</label>
+        <select
+          className="border p-2 rounded"
+          value={currency}
+          onChange={e => setCurrency(e.target.value)}
+        >
+          <option value="EUR">EUR</option>
+          <option value="RON">RON</option>
+        </select>
+      </div>
       
       {/* RESTORED: Apartment Selection UI */}
       <div>

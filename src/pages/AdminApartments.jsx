@@ -73,6 +73,10 @@ export default function AdminApartments({ onLogout }) {
   }
 
   async function handleDelete(id) {
+    if (!id) {
+        setMessage("Error: Cannot delete apartment, ID is missing.");
+        return; // Stop execution if ID is undefined/null
+    }
     if (!window.confirm("Are you sure you want to delete this apartment?")) return;
     setMessage('');
     try {
@@ -165,7 +169,7 @@ export default function AdminApartments({ onLogout }) {
               <p className="text-xs text-gray-400">Hotel ID: {ap.hotelId}</p> 
               <p className="text-sm text-gray-600">City: {ap.city} | Guests: {ap.maxGuests}</p>
               <p className="text-sm text-gray-600">Rooms: {ap.bedrooms} Bed, {ap.bathrooms} Bath</p>
-              <p className="mt-1 text-sm font-semibold">{ap.price} {ap.currency}</p>
+              <p className="mt-1 text-sm font-semibold text-indigo-600">{ap.price} {ap.currency}</p>
               
               <p className="mt-1 text-sm">
                 Status: <span className={`px-2 py-0.5 text-xs rounded ${
@@ -210,7 +214,7 @@ export default function AdminApartments({ onLogout }) {
           {discounts.map((d) => (
             <div key={d.id} className="bg-white shadow p-4 rounded border">
               <h3 className="font-bold text-lg">Code: {d.code}</h3> {/* Use d.code */}
-              <p className="text-sm">Price: {d.price}</p> {/* Use d.price */}
+              <p className="mt-1 text-sm font-semibold text-indigo-600">{d.price} {d.currency}</p> {/* Display currency with price */}
               <p className="text-sm text-gray-600">Expires: {d.expirationDate}</p> {/* Use d.expirationDate */}
               {/* Removed apartmentIds display */}
               <div className="flex gap-2 mt-4">
