@@ -12,7 +12,7 @@ export default function ApartmentForm({ initialData, onSubmit, onCancel, onMessa
   const [descriptionRo, setDescriptionRo] = useState(initialData?.descriptionRo || "");
   const [descriptionEn, setDescriptionEn] = useState(initialData?.descriptionEn || "");
   const [price, setPrice] = useState(initialData?.price || "");
-  const [currency, setCurrency] = useState(initialData?.currency || "EUR");
+  const [currency, setCurrency] = useState(initialData?.currency || "RON");
   const [amenities, setAmenities] = useState(initialData?.amenities?.join(", ") || "");
   const [status, setStatus] = useState(initialData?.status || "available");
   // const [images, setImages] = useState(initialData?.images || []);
@@ -41,7 +41,7 @@ export default function ApartmentForm({ initialData, onSubmit, onCancel, onMessa
       setDescriptionRo(initialData?.descriptionRo || "");
       setDescriptionEn(initialData?.descriptionEn || "");
       setPrice(initialData?.price ?? "");
-      setCurrency(initialData?.currency || "EUR");
+      setCurrency(initialData?.currency || "RON");
       setAmenities(initialData?.amenities?.join(", ") || "");
       setStatus(initialData?.status || "available");
       setImages(initialData?.images || []);
@@ -59,7 +59,7 @@ export default function ApartmentForm({ initialData, onSubmit, onCancel, onMessa
       setHotelId("");
       setName(""); setCity(""); setAddress("");
       setDescriptionRo(""); setDescriptionEn("");
-      setPrice(""); setCurrency("EUR");
+      setPrice(""); setCurrency("RON");
       setAmenities(""); setImages([]);
       setStatus("available");
       setMaxGuests(""); setBedrooms(""); setBathrooms("");
@@ -188,8 +188,9 @@ export default function ApartmentForm({ initialData, onSubmit, onCancel, onMessa
           value={currency}
           onChange={e => setCurrency(e.target.value)}
         >
-          <option value="EUR">EUR</option>
           <option value="RON">RON</option>
+          <option value="EUR">EUR</option>
+          
         </select>
       </div>
       
