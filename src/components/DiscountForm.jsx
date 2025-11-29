@@ -7,7 +7,7 @@ export default function DiscountForm({ initialData, apartments = [], onSubmit, o
   const [code, setCode] = useState(initialData?.code || "");
   const [expirationDate, setExpirationDate] = useState(initialData?.expirationDate || "");
   const [price, setPrice] = useState(initialData?.price || "");
-  const [currency, setCurrency] = useState(initialData?.currency || "EUR");
+  const [currency, setCurrency] = useState(initialData?.currency || "RON");
   
   // RESTORED: State for apartment IDs linked to this discount
   const [apartmentIds, setApartmentIds] = useState(initialData?.apartmentIds || []);
@@ -18,14 +18,14 @@ export default function DiscountForm({ initialData, apartments = [], onSubmit, o
       setCode(initialData?.code || "");
       setExpirationDate(initialData?.expirationDate || "");
       setPrice(initialData?.price || "");
-      setCurrency(initialData?.currency || "EUR");
+      setCurrency(initialData?.currency || "RON");
       setApartmentIds(initialData?.apartmentIds || []);
     } else {
       // Clear form when no initialData (e.g. cancelled)
       setCode("");
       setExpirationDate("");
       setPrice("");
-      setCurrency("EUR");
+      setCurrency("RON");
       setApartmentIds([]);
     }
   }, [initialData]);
@@ -56,7 +56,7 @@ export default function DiscountForm({ initialData, apartments = [], onSubmit, o
       setCode("");
       setExpirationDate("");
       setPrice("");
-      setCurrency("EUR");
+      setCurrency("RON");
       setApartmentIds([]); // Reset apartment selection
     }
   }
@@ -109,7 +109,7 @@ export default function DiscountForm({ initialData, apartments = [], onSubmit, o
                 checked={apartmentIds.includes(ap.id)}
                 onChange={() => toggleApartment(ap.id)}
               />
-              {ap.name} — {ap.price} {ap.currency || 'EUR'}
+              {ap.name} — {ap.price} {ap.currency || 'RON'}
             </label>
           ))}
         </div>

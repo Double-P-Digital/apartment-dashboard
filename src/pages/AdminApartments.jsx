@@ -42,14 +42,20 @@ export default function AdminApartments({ onLogout }) {
     setMessage('');
     try {
         let result;
+        console.log('handleAddOrUpdate - apartment data:', apartment);
         if (apartment.id) {
+            console.log('Updating apartment with id:', apartment.id);
             result = await updateApartment(apartment);
+            console.log('updateApartment response:', result);
             setMessage(`Apartment '${apartment.name}' updated successfully.`);
+            // Use the result from backend, not the local apartment object
             setApartments(prev =>
-                prev.map(a => (a.id === apartment.id ? apartment : a))
+                prev.map(a => (a.id === apartment.id ? result : a))
             );
         } else {
+            console.log('Creating new apartment');
             result = await saveApartment(apartment);
+            console.log('saveApartment response:', result);
             setMessage(`Apartment '${apartment.name}' added successfully.`);
             setApartments(prev => [...prev, result]); 
         }
@@ -169,7 +175,7 @@ export default function AdminApartments({ onLogout }) {
               <p className="text-xs text-gray-400">Hotel ID: {ap.hotelId}</p> 
               <p className="text-sm text-gray-600">City: {ap.city} | Guests: {ap.maxGuests}</p>
               <p className="text-sm text-gray-600">Rooms: {ap.bedrooms} Bed, {ap.bathrooms} Bath</p>
-              <p className="mt-1 text-sm font-semibold text-indigo-600">{ap.price} {ap.currency || 'EUR'}</p>
+              <p className="mt-1 text-sm font-semibold text-indigo-600">{ap.price} {ap.currency || 'RON'}</p>
               
               <p className="mt-1 text-sm">
                 Status: <span className={`px-2 py-0.5 text-xs rounded ${
@@ -214,7 +220,7 @@ export default function AdminApartments({ onLogout }) {
           {discounts.map((d) => (
             <div key={d.id} className="bg-white shadow p-4 rounded border">
               <h3 className="font-bold text-lg">Code: {d.code}</h3> {/* Use d.code */}
-              <p className="mt-1 text-sm font-semibold text-indigo-600">{d.price} {d.currency || 'EUR'}</p> {/* Display currency with price */}
+              <p className="mt-1 text-sm font-semibold text-indigo-600">{d.price} {d.currency || 'RON'}</p> {/* Display currency with price */}
               <p className="text-sm text-gray-600">Expires: {d.expirationDate}</p> {/* Use d.expirationDate */}
               {/* Removed apartmentIds display */}
               <div className="flex gap-2 mt-4">

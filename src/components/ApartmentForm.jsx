@@ -146,7 +146,7 @@ export default function ApartmentForm({ initialData, onSubmit, onCancel, onMessa
       setName(""); setCity(""); setAddress(""); 
       setDescriptionRo(""); setDescriptionEn("");
       setAmenities(""); setImages([]); setPrice(""); 
-      setStatus("available"); setCurrency("EUR");
+      setStatus("available"); setCurrency("RON");
       
       
       setMaxGuests(""); setBedrooms(""); setBathrooms("");
