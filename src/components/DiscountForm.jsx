@@ -108,7 +108,7 @@ export default function DiscountForm({ initialData, apartments = [], onSubmit, o
                 checked={apartmentIds.includes(ap.id)}
                 onChange={() => toggleApartment(ap.id)}
               />
-              {ap.name} — {ap.price} {ap.currency}
+              {ap.name} — {ap.price} {ap.currency || 'EUR'}
             </label>
           ))}
         </div>
