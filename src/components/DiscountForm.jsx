@@ -40,7 +40,7 @@ export default function DiscountForm({ initialData, apartments = [], onSubmit, o
 
   function handleSubmit(e) {
     e.preventDefault();
-    onSubmit({
+    const payload = {
       // We assume the backend uses Mongoose _id as the 'id' property here
       id: initialData?._id || initialData?.id, 
       code,
@@ -49,7 +49,8 @@ export default function DiscountForm({ initialData, apartments = [], onSubmit, o
       currency,
       // RESTORED: Include apartmentIds in the payload for the backend service
       apartmentIds, 
-    });
+    };
+    onSubmit(payload);
 
     if (!initialData) {
       setCode("");

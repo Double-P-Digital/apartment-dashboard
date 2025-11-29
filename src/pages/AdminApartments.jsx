@@ -97,11 +97,15 @@ export default function AdminApartments({ onLogout }) {
         if (discount.id) {
              // Treat as update, assuming saveDiscount (POST) handles it
              savedDiscount = await saveDiscount(discount); 
+             // Preserve currency if backend didn't return it
+             savedDiscount = { ...savedDiscount, currency: savedDiscount.currency || discount.currency };
              setDiscounts(prev => prev.map(d => (d.id === discount.id ? savedDiscount : d)));
              setMessage(`Discount code '${discount.code}' updated successfully.`); // Use 'code'
         } else {
             // create new
             savedDiscount = await saveDiscount(discount);
+            // Preserve currency if backend didn't return it
+            savedDiscount = { ...savedDiscount, currency: savedDiscount.currency || discount.currency };
             setDiscounts(prev => [...prev, savedDiscount]);
             setMessage(`Discount code '${savedDiscount.code}' added successfully.`); // Use 'code'
         }
