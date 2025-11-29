@@ -1,6 +1,7 @@
 import React, {useState, useEffect, useRef} from "react";
+import { uploadFilesToCloudinary } from "../service/ApartmentService";
 
-export default function ApartmentForm({ initialData, onSubmit, onCancel }) {
+export default function ApartmentForm({ initialData, onSubmit, onCancel, onMessage }) {
   
   // ADDED: State for hotelId
   const [hotelId, setHotelId] = useState(initialData?.hotelId || "");
@@ -14,7 +15,7 @@ export default function ApartmentForm({ initialData, onSubmit, onCancel }) {
   const [currency, setCurrency] = useState(initialData?.currency || "EUR");
   const [amenities, setAmenities] = useState(initialData?.amenities?.join(", ") || "");
   const [status, setStatus] = useState(initialData?.status || "available");
-  const [images, setImages] = useState(initialData?.images || []);
+  // const [images, setImages] = useState(initialData?.images || []);
   
   
   const [maxGuests, setMaxGuests] = useState(initialData?.maxGuests || "");
@@ -22,6 +23,9 @@ export default function ApartmentForm({ initialData, onSubmit, onCancel }) {
   const [bathrooms, setBathrooms] = useState(initialData?.bathrooms || "");
   const [latitude, setLatitude] = useState(initialData?.coordinates?.latitude || "");
   const [longitude, setLongitude] = useState(initialData?.coordinates?.longitude || "");
+
+  const [images, setImages] = useState(initialData?.images || []);
+  const [isUploading, setIsUploading] = useState(false);
   
   // refs to focus and scroll when editing
   const nameInputRef = useRef(null);
@@ -75,11 +79,35 @@ export default function ApartmentForm({ initialData, onSubmit, onCancel }) {
     addImages(files);
   }
 
-  function addImages(files) {
-    // NOTE: In a real deployment, you would upload these files to a server 
-    // and get a real URL back. This is a placeholder.
-    const newUrls = files.map(file => `http://${file.name}`);
-    setImages(prev => [...prev, ...newUrls]);
+ async function addImages(files) {
+    if (files.length === 0) return;
+    
+    setIsUploading(true);
+    
+    try {
+        const newUrls = await uploadFilesToCloudinary(files); 
+        
+        if (newUrls.length > 0) {
+            setImages(prev => [...prev, ...newUrls]);
+        }
+        
+        // FIX: Use the prop 'onMessage' to update the parent's state
+        if (onMessage) {
+            onMessage(`✅ Successfully uploaded ${newUrls.length} images.`);
+        }
+        
+    } catch (error) {
+        console.error("Image upload failed:", error);
+        alert(`Image upload failed: ${error.message}`);
+        
+        // FIX: Use the prop 'onMessage' to update the parent's state with an error
+        if (onMessage) {
+             onMessage(`❌ Error uploading images: ${error.message}`);
+        }
+        
+    }
+    
+    setIsUploading(false);
   }
 
   function handleSubmit(e) {
@@ -208,15 +236,25 @@ export default function ApartmentForm({ initialData, onSubmit, onCancel }) {
         <option value="unavailable">unavailable</option>
       </select>
 
-      {/* Image Handling (Remains the same) */}
+      {/* Image Handling (Updated to show loading state) */}
       <div
-        className="border-2 border-dashed rounded p-6 text-center cursor-pointer bg-gray-50 hover:bg-gray-100"
+        className={`border-2 border-dashed rounded p-6 text-center cursor-pointer ${isUploading ? 'bg-yellow-100 border-yellow-500 animate-pulse' : 'bg-gray-50 hover:bg-gray-100'}`}
         onDrop={handleDrop}
         onDragOver={(e) => e.preventDefault()}
-        onClick={() => document.getElementById("file-input").click()}
+        onClick={() => !isUploading && document.getElementById("file-input").click()}
       >
-        Drag & Drop images here or click to select
-        <input id="file-input" type="file" multiple className="hidden" onChange={handleSelectImages} />
+        {isUploading 
+          ? "Uploading... Please wait." 
+          : "Drag & Drop images here or click to select"}
+          
+        <input 
+          id="file-input" 
+          type="file" 
+          multiple 
+          className="hidden" 
+          onChange={handleSelectImages} 
+          disabled={isUploading} // Disable input while uploading
+        />
       </div>
 
       {images.length > 0 && (

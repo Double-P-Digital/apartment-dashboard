@@ -153,6 +153,7 @@ export default function AdminApartments({ onLogout }) {
           initialData={editingApartment}
           onSubmit={handleAddOrUpdate}
           onCancel={() => setEditingApartment(null)}
+          onMessage={setMessage}
         />
 
         {/* Apartment List */}
