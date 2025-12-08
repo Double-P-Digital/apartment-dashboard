@@ -67,6 +67,17 @@ export const uploadFilesToCloudinary = async (files) => {
             formData.append('file', file);
             formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
             
+            // Optimize image quality and format for best quality
+            // quality: 'auto' uses Cloudinary's AI to determine optimal quality
+            // You can also use a specific value like '90' or '100' for maximum quality
+            formData.append('quality', 'auto:best'); // Best quality with auto optimization
+            
+            // Automatically convert to best format (WebP when supported, original otherwise)
+            formData.append('fetch_format', 'auto');
+            
+            // Enable automatic format optimization
+            formData.append('flags', 'immutable_cache');
+            
             // Optional: Include an identifier if you want to use the hotelId
             // formData.append('public_id', `${hotelId}-${file.name}`);
 
@@ -80,6 +91,7 @@ export const uploadFilesToCloudinary = async (files) => {
         const results = await Promise.all(responses.map(handleResponse));
         
         // Cloudinary returns the secure_url in the response body
+        // The URL already includes the transformations we specified
         return results.map(result => result.secure_url);
 
     } catch (error) {
