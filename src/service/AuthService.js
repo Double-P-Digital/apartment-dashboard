@@ -1,4 +1,5 @@
-const API_BASE_URL = 'http://localhost:3000/api/auth-service'; 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const API_ENDPOINT = `${API_BASE_URL}/api/auth-service`;
 // Use the same apiKey variable setup as in your other services
 const apiKey = import.meta.env.VITE_X_API_KEY; 
 
@@ -11,7 +12,7 @@ const apiKey = import.meta.env.VITE_X_API_KEY;
 export async function loginUser(username, password) {
   try {
     // 1. FIX: Append '/login' to reach the correct backend route
-    const response = await fetch(`${API_BASE_URL}/login`, {
+    const response = await fetch(`${API_ENDPOINT}/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -31,7 +32,6 @@ export async function loginUser(username, password) {
     // The backend service returns { token: string }, so we extract the token.
     return data.token;
   } catch (error) {
-    console.error('API Login Error:', error);
     // Re-throw the error to be caught by the component
     throw error;
   }

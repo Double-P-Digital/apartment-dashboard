@@ -2,6 +2,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { clearToken } from '../auth';
+import FailedReservationsAlert from '../components/FailedReservationsAlert';
 
 export default function AdminHome() {
   const navigate = useNavigate();
@@ -27,12 +28,20 @@ export default function AdminHome() {
       </header>
 
       <main className="p-6">
+        {/* Failed Reservations Alert - Shows when there are sync failures */}
+        <FailedReservationsAlert />
+
         <h3 className="text-xl font-medium mb-4">Welcome, Admin</h3>
 
         <div className="bg-white p-6 rounded shadow">
           
           <div className="mt-4">
-            <button className="px-3 py-2 bg-indigo-600 text-white rounded">Manage Apartments</button>
+            <button 
+              onClick={() => navigate('/apartments')}
+              className="px-3 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors"
+            >
+              Manage Apartments
+            </button>
           </div>
         </div>
       </main>

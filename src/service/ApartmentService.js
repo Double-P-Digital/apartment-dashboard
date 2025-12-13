@@ -1,6 +1,7 @@
 // src/service/ApartmentService.js
 
-const API_BASE_URL = 'http://localhost:3000/api/apartment-service'; 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const API_ENDPOINT = `${API_BASE_URL}/api/apartment-service`;
 // Ensure your .env file has a variable like VITE_X_API_KEY=supersecretinternalapikey
 const apiKey = import.meta.env.VITE_X_API_KEY; // For Vite
 const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
@@ -24,7 +25,7 @@ const getAuthHeaders = () => {
     
     // Check for the API Key (optional, but good for debugging if missing)
     if (!apiKey) {
-        console.warn("VITE_X_API_KEY is missing from environment configuration.");
+        // API key missing - requests may fail
     }
     
     return {
@@ -95,7 +96,6 @@ export const uploadFilesToCloudinary = async (files) => {
         return results.map(result => result.secure_url);
 
     } catch (error) {
-        console.error("Error uploading files to Cloudinary:", error);
         throw error;
     }
 }
@@ -105,7 +105,7 @@ export const uploadFilesToCloudinary = async (files) => {
 
 export const saveApartment = async (apartmentData) => {
     try {
-        const response =  await fetch(`${API_BASE_URL}`, {
+        const response =  await fetch(`${API_ENDPOINT}`, {
             method: 'POST',
             headers: getAuthHeaders(),
             body: JSON.stringify(apartmentData)
@@ -113,14 +113,13 @@ export const saveApartment = async (apartmentData) => {
 
         return await handleResponse(response);
     } catch (error) {
-        console.error("Error saving apartment:", error);
         throw error;
     }
 }
 
 export const getApartments = async () => {
     try {
-        const response =  await fetch(`${API_BASE_URL}/all`, {
+        const response =  await fetch(`${API_ENDPOINT}/all`, {
             method: 'GET',
             headers: getAuthHeaders(),
         });
@@ -128,14 +127,13 @@ export const getApartments = async () => {
         return await handleResponse(response);
     }
     catch (error) {
-        console.error("Error fetching apartments:", error);
         throw error;
     }
 }
 
 export const updateApartment = async (apartmentData) => {
     try {
-        const response =  await fetch(`${API_BASE_URL}/${apartmentData.id}`, {
+        const response =  await fetch(`${API_ENDPOINT}/${apartmentData.id}`, {
             method: 'PUT',
             headers: getAuthHeaders(),
             body: JSON.stringify(apartmentData)
@@ -143,14 +141,13 @@ export const updateApartment = async (apartmentData) => {
 
         return await handleResponse(response);
     } catch (error) {
-        console.error("Error updating apartment:", error);
         throw error;
     }
 }
 
 export const deleteApartment = async (apartmentId) => {
     try {
-        const response = await fetch(`${API_BASE_URL}/${apartmentId}`, {
+        const response = await fetch(`${API_ENDPOINT}/${apartmentId}`, {
             method: 'DELETE',
             headers: getAuthHeaders(),
         });
@@ -161,7 +158,6 @@ export const deleteApartment = async (apartmentId) => {
 
         return await handleResponse(response);
     } catch (error) {
-        console.error("Error deleting apartment:", error);
         throw error;
     }
 }

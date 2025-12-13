@@ -5,8 +5,9 @@ export default function ApartmentForm({ initialData, onSubmit, onCancel, onMessa
   
   // ADDED: State for hotelId
   const [hotelId, setHotelId] = useState(initialData?.hotelId || "");
-  // ADDED: State for roomId
+  // ADDED: State for roomId (legacy) and roomType (new)
   const [roomId, setRoomId] = useState(initialData?.roomId || "");
+  const [roomType, setRoomType] = useState(initialData?.roomType || "");
   // ADDED: State for stripeAccountId
   const [stripeAccountId, setStripeAccountId] = useState(initialData?.stripeAccountId || "");
   
@@ -27,9 +28,14 @@ export default function ApartmentForm({ initialData, onSubmit, onCancel, onMessa
   const [bathrooms, setBathrooms] = useState(initialData?.bathrooms || "");
   const [latitude, setLatitude] = useState(initialData?.coordinates?.latitude || "");
   const [longitude, setLongitude] = useState(initialData?.coordinates?.longitude || "");
+  const [displayOrder, setDisplayOrder] = useState(initialData?.displayOrder ?? "");
 
   const [images, setImages] = useState(initialData?.images || []);
   const [isUploading, setIsUploading] = useState(false);
+  
+  // Image drag and drop state
+  const [draggedImageIndex, setDraggedImageIndex] = useState(null);
+  const [dragOverImageIndex, setDragOverImageIndex] = useState(null);
   
   // refs to focus and scroll when editing
   const nameInputRef = useRef(null);
@@ -40,6 +46,7 @@ export default function ApartmentForm({ initialData, onSubmit, onCancel, onMessa
     if (initialData) {
       setHotelId(initialData?.hotelId || "");
       setRoomId(initialData?.roomId || "");
+      setRoomType(initialData?.roomType || "");
       setStripeAccountId(initialData?.stripeAccountId || "");
       setName(initialData?.name || "");
       setCity(initialData?.city || "");
@@ -56,6 +63,7 @@ export default function ApartmentForm({ initialData, onSubmit, onCancel, onMessa
       setBathrooms(initialData?.bathrooms ?? "");
       setLatitude(initialData?.coordinates?.latitude ?? "");
       setLongitude(initialData?.coordinates?.longitude ?? "");
+      setDisplayOrder(initialData?.displayOrder ?? "");
 
       // scroll the form into view and focus the name input
       formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -64,6 +72,7 @@ export default function ApartmentForm({ initialData, onSubmit, onCancel, onMessa
       // clear form when no initialData (e.g. cancelled)
       setHotelId("");
       setRoomId("");
+      setRoomType("");
       setStripeAccountId("");
       setName(""); setCity(""); setAddress("");
       setDescriptionRo(""); setDescriptionEn("");
@@ -72,6 +81,7 @@ export default function ApartmentForm({ initialData, onSubmit, onCancel, onMessa
       setStatus("available");
       setMaxGuests(""); setBedrooms(""); setBathrooms("");
       setLatitude(""); setLongitude("");
+      setDisplayOrder("");
     }
   }, [initialData]);
   
@@ -105,7 +115,6 @@ export default function ApartmentForm({ initialData, onSubmit, onCancel, onMessa
         }
         
     } catch (error) {
-        console.error("Image upload failed:", error);
         alert(`Image upload failed: ${error.message}`);
         
         // FIX: Use the prop 'onMessage' to update the parent's state with an error
@@ -116,6 +125,49 @@ export default function ApartmentForm({ initialData, onSubmit, onCancel, onMessa
     }
     
     setIsUploading(false);
+  }
+
+  // Image drag and drop handlers
+  function handleImageDragStart(e, index) {
+    setDraggedImageIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+  }
+
+  function handleImageDragOver(e, index) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (draggedImageIndex !== null && draggedImageIndex !== index) {
+      setDragOverImageIndex(index);
+    }
+  }
+
+  function handleImageDragLeave(e) {
+    e.preventDefault();
+    setDragOverImageIndex(null);
+  }
+
+  function handleImageDrop(e, targetIndex) {
+    e.preventDefault();
+    setDragOverImageIndex(null);
+    
+    if (draggedImageIndex === null || draggedImageIndex === targetIndex) {
+      setDraggedImageIndex(null);
+      return;
+    }
+    
+    // Simple swap between the two images
+    const newImages = [...images];
+    const temp = newImages[draggedImageIndex];
+    newImages[draggedImageIndex] = newImages[targetIndex];
+    newImages[targetIndex] = temp;
+    
+    setImages(newImages);
+    setDraggedImageIndex(null);
+  }
+
+  function handleImageDragEnd() {
+    setDraggedImageIndex(null);
+    setDragOverImageIndex(null);
   }
 
   function handleSubmit(e) {
@@ -129,6 +181,8 @@ export default function ApartmentForm({ initialData, onSubmit, onCancel, onMessa
       ...(hotelId && { hotelId }),
       // Only include roomId if it has a value
       ...(roomId && { roomId }),
+      // Include roomType if provided
+      ...(roomType && { roomType }),
       // Only include stripeAccountId if it has a value
       ...(stripeAccountId && { stripeAccountId }),
       name,
@@ -142,8 +196,8 @@ export default function ApartmentForm({ initialData, onSubmit, onCancel, onMessa
       amenities: amenities.split(",").map(a => a.trim()).filter(Boolean),
       images: images || [],
       status,
-      // Include position if it exists (preserve when editing)
-      ...(initialData?.position !== undefined && { position: initialData.position }),
+      // Include displayOrder if it exists (preserve when editing or use input value)
+      ...(displayOrder !== "" && { displayOrder: Number(displayOrder) }),
       
       maxGuests: maxGuests ? Number(maxGuests) : undefined,
       bedrooms: bedrooms ? Number(bedrooms) : undefined,
@@ -164,11 +218,10 @@ export default function ApartmentForm({ initialData, onSubmit, onCancel, onMessa
     onSubmit(apartmentData);
 
     if (!initialData) {
-      // ADDED: Reset hotelId
+      // Reset all fields
       setHotelId("");
-      // ADDED: Reset roomId
       setRoomId("");
-      // ADDED: Reset stripeAccountId
+      setRoomType("");
       setStripeAccountId("");
       
       setName(""); setCity(""); setAddress(""); 
@@ -176,9 +229,9 @@ export default function ApartmentForm({ initialData, onSubmit, onCancel, onMessa
       setAmenities(""); setImages([]); setPrice(""); 
       setStatus("available"); setCurrency("RON");
       
-      
       setMaxGuests(""); setBedrooms(""); setBathrooms("");
       setLatitude(""); setLongitude("");
+      setDisplayOrder("");
     }
   }
 
@@ -214,6 +267,17 @@ export default function ApartmentForm({ initialData, onSubmit, onCancel, onMessa
               placeholder="Room ID"
               value={roomId} 
               onChange={e => setRoomId(e.target.value)} 
+              required 
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Room Type *</label>
+            <input 
+              className="w-full border border-gray-300 p-2.5 sm:p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none" 
+              placeholder="Room Type (ex: Deluxe, 104)"
+              value={roomType} 
+              onChange={e => setRoomType(e.target.value)} 
               required 
             />
           </div>
@@ -344,6 +408,22 @@ export default function ApartmentForm({ initialData, onSubmit, onCancel, onMessa
           </div>
         </div>
         
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Display Order</label>
+            <input
+              type="number"
+              className="w-full border border-gray-300 p-2.5 sm:p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none"
+              placeholder="Order (per city)"
+              value={displayOrder}
+              onChange={e => setDisplayOrder(e.target.value)}
+              onWheel={e => e.target.blur()} 
+              min="0"
+            />
+            <p className="text-xs text-gray-500 mt-1">Lower numbers appear first within city</p>
+          </div>
+        </div>
+        
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Max Guests *</label>
@@ -465,64 +545,61 @@ export default function ApartmentForm({ initialData, onSubmit, onCancel, onMessa
 
         {images.length > 0 && (
           <div className="mt-4">
-            <p className="text-sm font-medium text-gray-700 mb-3">Uploaded Images ({images.length})</p>
+            <p className="text-sm font-medium text-gray-700 mb-2">Uploaded Images ({images.length})</p>
+            <p className="text-xs text-gray-500 mb-3">Drag and drop to reorder images. First image will be the main photo.</p>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
-              {images.map((img, i) => (
-                <div key={i} className="relative group">
-                  <div className="aspect-square rounded-lg overflow-hidden border-2 border-gray-200 group-hover:border-indigo-400 transition-all">
-                    <img src={img} className="w-full h-full object-cover" alt={`Upload ${i + 1}`} />
-                  </div>
-                  
-                  <div className="absolute top-2 left-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded">
-                    {i + 1}
-                  </div>
-                  
-                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all rounded-lg flex items-center justify-center gap-2">
-                    <button
-                      type="button"
-                      disabled={i === 0}
-                      onClick={() => {
-                        const newArr = [...images];
-                        [newArr[i-1], newArr[i]] = [newArr[i], newArr[i-1]];
-                        setImages(newArr);
-                      }}
-                      className="opacity-0 group-hover:opacity-100 bg-white rounded-full p-1.5 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-100 transition-all"
-                      title="Move left"
-                    >
-                      <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              {images.map((img, i) => {
+                const isDragging = draggedImageIndex === i;
+                const isDragOver = dragOverImageIndex === i;
+                
+                return (
+                  <div 
+                    key={i} 
+                    className={`relative group cursor-grab active:cursor-grabbing ${
+                      isDragging ? 'opacity-50' : ''
+                    } ${isDragOver ? 'ring-2 ring-indigo-500 ring-offset-2 rounded-lg' : ''}`}
+                    draggable
+                    onDragStart={(e) => handleImageDragStart(e, i)}
+                    onDragOver={(e) => handleImageDragOver(e, i)}
+                    onDragLeave={handleImageDragLeave}
+                    onDrop={(e) => handleImageDrop(e, i)}
+                    onDragEnd={handleImageDragEnd}
+                  >
+                    <div className={`aspect-square rounded-lg overflow-hidden border-2 transition-all ${
+                      i === 0 ? 'border-indigo-500 ring-2 ring-indigo-200' : 'border-gray-200 group-hover:border-indigo-400'
+                    }`}>
+                      <img src={img} className="w-full h-full object-cover" alt={`Upload ${i + 1}`} />
+                    </div>
+                    
+                    {/* Position badge with drag handle icon */}
+                    <div className="absolute top-2 left-2 bg-black/70 backdrop-blur-sm text-white text-xs px-2 py-1 rounded flex items-center gap-1">
+                      <svg className="w-3 h-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
                       </svg>
-                    </button>
-
-                    <button
-                      type="button"
-                      disabled={i === images.length - 1}
-                      onClick={() => {
-                        const newArr = [...images];
-                        [newArr[i+1], newArr[i]] = [newArr[i], newArr[i+1]];
-                        setImages(newArr);
-                      }}
-                      className="opacity-0 group-hover:opacity-100 bg-white rounded-full p-1.5 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-100 transition-all"
-                      title="Move right"
-                    >
-                      <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </button>
-
+                      <span className="font-medium">{i === 0 ? '★ 1' : i + 1}</span>
+                    </div>
+                    
+                    {/* Delete button */}
                     <button
                       type="button"
                       onClick={() => setImages(images.filter((_, index) => index !== i))}
-                      className="opacity-0 group-hover:opacity-100 bg-red-500 rounded-full p-1.5 hover:bg-red-600 transition-all"
-                      title="Remove"
+                      className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 bg-red-500 rounded-full p-1.5 hover:bg-red-600 transition-all shadow-lg"
+                      title="Remove image"
                     >
                       <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                       </svg>
                     </button>
+                    
+                    {/* Main photo indicator */}
+                    {i === 0 && (
+                      <div className="absolute bottom-2 left-2 right-2 bg-indigo-600/90 text-white text-xs py-1 px-2 rounded text-center font-medium">
+                        Main Photo
+                      </div>
+                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}

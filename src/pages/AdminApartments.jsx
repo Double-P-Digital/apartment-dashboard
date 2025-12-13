@@ -14,6 +14,10 @@ export default function AdminApartments({ onLogout }) {
   const [discounts, setDiscounts] = useState([]);
   const [editingDiscount, setEditingDiscount] = useState(null);
   const [message, setMessage] = useState('');
+  
+  // Drag and Drop state
+  const [draggedApartment, setDraggedApartment] = useState(null);
+  const [dragOverApartment, setDragOverApartment] = useState(null);
 
     // Fetch BOTH Apartments and Discounts on load
     useEffect(() => {
@@ -25,15 +29,10 @@ export default function AdminApartments({ onLogout }) {
                 const normalizedApartments = apartmentData.map((apt, index) => ({
                     ...apt,
                     id: apt._id || apt.id,
-                    position: apt.position !== undefined ? apt.position : index
+                    displayOrder: apt.displayOrder !== undefined ? apt.displayOrder : index
                 }));
-                // Sort by position, then by creation order
-                normalizedApartments.sort((a, b) => {
-                    if (a.position !== undefined && b.position !== undefined) {
-                        return a.position - b.position;
-                    }
-                    return 0;
-                });
+                // Sort by displayOrder
+                normalizedApartments.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
                 setApartments(normalizedApartments);
 
                 // Fetch Discounts
@@ -42,7 +41,6 @@ export default function AdminApartments({ onLogout }) {
                 
             }
             catch (error) {
-                console.error("Error fetching data:", error.message);
                 setMessage("Error loading data: " + error.message);
             }
         }
@@ -50,99 +48,120 @@ export default function AdminApartments({ onLogout }) {
         fetchData().then();
     }, [])
 
-  // --- Apartments CRUD (Logic remains the same) ---
+  // --- Apartments CRUD ---
   async function handleAddOrUpdate(apartment) {
     setMessage('');
     try {
         let result;
-        console.log('handleAddOrUpdate - apartment data:', apartment);
         // Handle both _id (Mongoose) and id formats
         const apartmentId = apartment._id || apartment.id;
         
-        // If creating new apartment, set position to end of list
-        if (!apartmentId && apartment.position === undefined) {
-            apartment.position = apartments.length;
+        // If creating new apartment, set displayOrder to end of city list
+        if (!apartmentId && apartment.displayOrder === undefined) {
+            const cityApartments = apartments.filter(a => a.city === apartment.city);
+            apartment.displayOrder = cityApartments.length;
         }
         
         if (apartmentId) {
-            console.log('Updating apartment with id:', apartmentId);
             result = await updateApartment(apartment);
-            console.log('updateApartment response:', result);
             setMessage(`Apartment '${apartment.name}' updated successfully.`);
-            // Normalize the result ID (handle both _id and id)
             const resultId = result._id || result.id;
-            // Use the result from backend, not the local apartment object
             setApartments(prev => {
                 const updated = prev.map(a => {
                     const aId = a._id || a.id;
-                    return (aId === apartmentId ? { ...result, id: resultId, position: result.position !== undefined ? result.position : a.position } : a);
+                    return (aId === apartmentId ? { ...result, id: resultId, displayOrder: result.displayOrder !== undefined ? result.displayOrder : a.displayOrder } : a);
                 });
-                // Re-sort after update
-                return updated.sort((a, b) => {
-                    if (a.position !== undefined && b.position !== undefined) {
-                        return a.position - b.position;
-                    }
-                    return 0;
-                });
+                return updated.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
             });
         } else {
-            console.log('Creating new apartment');
             result = await saveApartment(apartment);
-            console.log('saveApartment response:', result);
             setMessage(`Apartment '${apartment.name}' added successfully.`);
-            // Normalize the result ID (handle both _id and id)
             const resultId = result._id || result.id;
             setApartments(prev => {
-                const newList = [...prev, { ...result, id: resultId, position: result.position !== undefined ? result.position : prev.length }];
-                return newList.sort((a, b) => {
-                    if (a.position !== undefined && b.position !== undefined) {
-                        return a.position - b.position;
-                    }
-                    return 0;
-                });
+                const newList = [...prev, { ...result, id: resultId, displayOrder: result.displayOrder !== undefined ? result.displayOrder : prev.length }];
+                return newList.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
             }); 
         }
         setEditingApartment(null);
     } catch (error) {
-        console.error("Error saving apartment:", error);
         setMessage("Error saving apartment: " + error.message);
     }
   }
 
-  async function handleMoveApartment(apartmentId, direction) {
+  // Drag and Drop handlers
+  function handleDragStart(e, apartment) {
+    setDraggedApartment(apartment);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', apartment.id);
+  }
+
+  function handleDragOver(e, apartment) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    // Only allow dropping within the same city
+    if (draggedApartment && draggedApartment.city === apartment.city && draggedApartment.id !== apartment.id) {
+      setDragOverApartment(apartment);
+    }
+  }
+
+  function handleDragLeave(e) {
+    e.preventDefault();
+    setDragOverApartment(null);
+  }
+
+  async function handleDrop(e, targetApartment) {
+    e.preventDefault();
+    setDragOverApartment(null);
+    
+    if (!draggedApartment || draggedApartment.id === targetApartment.id) {
+      setDraggedApartment(null);
+      return;
+    }
+    
+    // Only allow reordering within the same city
+    if (draggedApartment.city !== targetApartment.city) {
+      setMessage("Cannot move apartment to a different city.");
+      setDraggedApartment(null);
+      return;
+    }
+    
     setMessage('');
     try {
-        const currentIndex = apartments.findIndex(a => (a._id || a.id) === apartmentId);
-        if (currentIndex === -1) return;
-        
-        const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
-        if (newIndex < 0 || newIndex >= apartments.length) return;
-        
-        const updatedApartments = [...apartments];
-        const movedApartment = updatedApartments[currentIndex];
-        const swappedApartment = updatedApartments[newIndex];
-        
-        // Swap positions
-        const tempPosition = movedApartment.position;
-        movedApartment.position = swappedApartment.position;
-        swappedApartment.position = tempPosition;
-        
-        // Swap in array
-        [updatedApartments[currentIndex], updatedApartments[newIndex]] = 
-        [updatedApartments[newIndex], updatedApartments[currentIndex]];
-        
-        // Update both apartments in backend
-        await Promise.all([
-            updateApartment({ ...movedApartment, position: movedApartment.position }),
-            updateApartment({ ...swappedApartment, position: swappedApartment.position })
-        ]);
-        
-        setApartments(updatedApartments);
-        setMessage(`Apartment position updated successfully.`);
+      // Simple SWAP: only swap displayOrder between the two apartments
+      const draggedOrder = draggedApartment.displayOrder;
+      const targetOrder = targetApartment.displayOrder;
+      
+      // Update both apartments with swapped displayOrder values
+      await Promise.all([
+        updateApartment({ ...draggedApartment, displayOrder: targetOrder }),
+        updateApartment({ ...targetApartment, displayOrder: draggedOrder })
+      ]);
+      
+      // Update local state - swap the displayOrder values
+      setApartments(prev => {
+        const updated = prev.map(apt => {
+          if (apt.id === draggedApartment.id) {
+            return { ...apt, displayOrder: targetOrder };
+          }
+          if (apt.id === targetApartment.id) {
+            return { ...apt, displayOrder: draggedOrder };
+          }
+          return apt;
+        });
+        return updated.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+      });
+      
+      setMessage(`Swapped positions successfully.`);
     } catch (error) {
-        console.error("Error moving apartment:", error);
-        setMessage("Error moving apartment: " + error.message);
+      setMessage("Error swapping apartments: " + error.message);
     }
+    
+    setDraggedApartment(null);
+  }
+
+  function handleDragEnd() {
+    setDraggedApartment(null);
+    setDragOverApartment(null);
   }
 
   function handleEdit(ap) {
@@ -174,7 +193,6 @@ export default function AdminApartments({ onLogout }) {
         setApartments(prev => prev.filter(a => a.id !== id));
         setMessage("Apartment deleted successfully.");
     } catch (error) {
-        console.error("Error deleting apartment:", error);
         setMessage("Error deleting apartment: " + error.message);
     }
   }
@@ -197,7 +215,6 @@ export default function AdminApartments({ onLogout }) {
         }
         setEditingDiscount(null);
     } catch (error) {
-        console.error("Error saving discount:", error);
         setMessage("Error saving discount: " + error.message);
     }
   }
@@ -216,7 +233,6 @@ export default function AdminApartments({ onLogout }) {
         setDiscounts(prev => prev.filter(d => d.id !== id));
         setMessage("Discount deleted successfully.");
     } catch (error) {
-        console.error("Error deleting discount:", error);
         setMessage("Error deleting discount: " + error.message);
     }
   }
@@ -235,8 +251,11 @@ export default function AdminApartments({ onLogout }) {
       return acc;
     }, {});
 
-    // Sort cities alphabetically
+    // Sort cities alphabetically and sort apartments within each city by displayOrder
     const sortedCities = Object.keys(apartmentsByCity).sort();
+    sortedCities.forEach(city => {
+      apartmentsByCity[city].sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+    });
 
     return (
       <div className="mt-8 sm:mt-10">
@@ -244,10 +263,6 @@ export default function AdminApartments({ onLogout }) {
         <div className="space-y-8 sm:space-y-12">
           {sortedCities.map((city) => {
             const cityApartments = apartmentsByCity[city];
-            const globalIndexMap = new Map();
-            apartments.forEach((apt, idx) => {
-              globalIndexMap.set(apt.id, idx);
-            });
 
             return (
               <div key={city} className="space-y-4">
@@ -264,47 +279,31 @@ export default function AdminApartments({ onLogout }) {
 
                 {/* Apartments Grid for this city */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                  {cityApartments.map((ap) => {
-                    const globalIndex = globalIndexMap.get(ap.id);
-                    const cityIndex = cityApartments.findIndex(a => a.id === ap.id);
-                    const isFirstOverall = globalIndex === 0;
-                    const isLastOverall = globalIndex === apartments.length - 1;
+                  {cityApartments.map((ap, cityIndex) => {
+                    const isDragging = draggedApartment?.id === ap.id;
+                    const isDragOver = dragOverApartment?.id === ap.id;
 
                     return (
                       <div 
                         key={ap.id} 
-                        className="bg-white border border-gray-200 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group relative"
+                        className={`bg-white border rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group relative cursor-grab active:cursor-grabbing ${
+                          isDragging ? 'opacity-50 border-indigo-400 border-2' : 'border-gray-200'
+                        } ${isDragOver ? 'ring-2 ring-indigo-500 ring-offset-2' : ''}`}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, ap)}
+                        onDragOver={(e) => handleDragOver(e, ap)}
+                        onDragLeave={handleDragLeave}
+                        onDrop={(e) => handleDrop(e, ap)}
+                        onDragEnd={handleDragEnd}
                       >
-                        {/* Position indicator and reorder buttons */}
-                        <div className="absolute top-3 left-3 z-10 flex flex-col gap-1">
-                          <button
-                            onClick={() => handleMoveApartment(ap.id, 'up')}
-                            disabled={isFirstOverall}
-                            className={`bg-white rounded-full p-1.5 shadow-md transition-all ${
-                              isFirstOverall 
-                                ? 'opacity-30 cursor-not-allowed' 
-                                : 'opacity-80 hover:opacity-100 hover:bg-indigo-50'
-                            }`}
-                            title="Move up"
-                          >
-                            <svg className="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                        {/* Drag handle and position indicator */}
+                        <div className="absolute top-3 left-3 z-10 flex items-center gap-2">
+                          <div className="bg-white/90 backdrop-blur-sm rounded-lg px-2 py-1 shadow-md flex items-center gap-1.5">
+                            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
                             </svg>
-                          </button>
-                          <button
-                            onClick={() => handleMoveApartment(ap.id, 'down')}
-                            disabled={isLastOverall}
-                            className={`bg-white rounded-full p-1.5 shadow-md transition-all ${
-                              isLastOverall 
-                                ? 'opacity-30 cursor-not-allowed' 
-                                : 'opacity-80 hover:opacity-100 hover:bg-indigo-50'
-                            }`}
-                            title="Move down"
-                          >
-                            <svg className="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                            </svg>
-                          </button>
+                            <span className="text-sm font-bold text-indigo-600">#{cityIndex + 1}</span>
+                          </div>
                         </div>
 
                         {ap.images.length > 0 && (

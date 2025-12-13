@@ -24,7 +24,6 @@ export default function Login({ onLoginSuccess }) {
 
       // Save the token to local storage
       localStorage.setItem('authToken', token);
-      console.log('Login successful. Token saved.');
       
       // Call the prop function to update the parent state (App.jsx) and redirect
       onLoginSuccess();
