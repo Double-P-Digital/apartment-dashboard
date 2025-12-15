@@ -177,8 +177,8 @@ export default function DiscountForm({ initialData, apartments = [], onSubmit, o
               onChange={e => setCurrency(e.target.value)}
               disabled={discountType === DiscountType.PERCENTAGE}
             >
-              <option value="EUR">EUR</option>
               <option value="RON">RON</option>
+              <option value="EUR">EUR</option>
             </select>
             {discountType === DiscountType.PERCENTAGE && (
               <p className="text-xs text-gray-500 mt-1">
