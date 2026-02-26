@@ -3,6 +3,7 @@
 import React, {useEffect, useState} from "react";
 import ApartmentForm from "../components/ApartmentForm";
 import DiscountForm from "../components/DiscountForm";
+import DateManagement from "../components/DateManagement";
 
 import {saveApartment, getApartments, updateApartment, deleteApartment} from "../service/ApartmentService.js";
 import {saveDiscount, getDiscounts, deleteDiscount} from "../service/DiscountService.js"; 
@@ -478,6 +479,16 @@ export default function AdminApartments({ onLogout }) {
             <p className="mt-1 text-sm text-gray-500">Get started by creating a new apartment.</p>
           </div>
         )}
+      </section>
+
+      {/* Date Management Section - NEW */}
+      <section className="bg-white rounded-xl shadow-lg p-4 sm:p-6 lg:p-8">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="h-10 w-1 bg-gradient-to-b from-blue-500 to-cyan-500 rounded-full"></div>
+          <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800">Gestionare Date și Prețuri</h2>
+        </div>
+        
+        <DateManagement apartments={apartments} />
       </section>
 
 
